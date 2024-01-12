@@ -3,6 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { MongoConfig } from './config/mongodb.config';
 import { User } from './users/user.schema';
 import { UsersModule } from './users/users.module';
+import { PostsModule } from './posts/posts.module';
 
 // Exemple de module fictif. Remplacez-le par les modules réels de votre application.
 @Module({
@@ -16,10 +17,9 @@ export class ExampleModule {}
   imports: [
     MongooseModule.forRoot(MongoConfig.uri), // Connexion à MongoDB
     ExampleModule,   
-    
+    PostsModule,
     MongooseModule.forRoot(MongoConfig.uri),
     UsersModule// Module d'exemple
-    // Incluez ici les autres modules spécifiques à votre application
   ],
 
   
