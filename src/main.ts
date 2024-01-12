@@ -2,13 +2,15 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as winston from 'winston';
 import * as DailyRotateFile from 'winston-daily-rotate-file';
+import * as morgan from 'morgan';
+
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Configuration de Winston
-  const logger = winston.createLogger({
-    level: 'silly', // Le niveau le plus bas, pour enregistrer tous les niveaux de logs
+  const winstonLogger = winston.createLogger({
+    level: 'info', // Le niveau le plus bas, pour enregistrer tous les niveaux de logs
     format: winston.format.combine(
       winston.format.timestamp(),
       winston.format.json()
@@ -27,7 +29,15 @@ async function bootstrap() {
     ],
   });
 
-  app.useLogger(logger);
+  const stream = {
+    write: (message: string) => {
+      winstonLogger.http(message.trim());
+    },
+  };
+
+  app.use(morgan('combined', { stream }));
+
+  app.useLogger(winstonLogger);
 
   await app.listen(3000);
 }

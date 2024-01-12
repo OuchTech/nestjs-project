@@ -1,29 +1,36 @@
-import { Module } from '@nestjs/common';
+import { Module, MiddlewareConsumer, RequestMethod } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { MongoConfig } from './config/mongodb.config';
-import { User } from './users/user.schema';
-import { UsersModule } from './users/users.module';
-import { PostsModule } from './posts/posts.module';
+import { WinstonModule } from 'nest-winston';
+import * as winston from 'winston';
+import * as DailyRotateFile from 'winston-daily-rotate-file';
+import { PrometheusModule } from './prometheus/prometheus.module'; 
+import { PrometheusMiddleware } from './middlewares/prometheus.middleware'; 
+import { MetricsController } from './metrics/metrics.controller'; 
 
-// Exemple de module fictif. Remplacez-le par les modules réels de votre application.
-@Module({
-  controllers: [], // Controllers pour le module fictif
-  providers: [],   // Services pour le module fictif
-})
-export class ExampleModule {}
-
-// Module principal de l'application
 @Module({
   imports: [
-    MongooseModule.forRoot(MongoConfig.uri), // Connexion à MongoDB
-    ExampleModule,   
-    PostsModule,
-    MongooseModule.forRoot(MongoConfig.uri),
-    UsersModule// Module d'exemple
+    MongooseModule.forRoot('mongodb://localhost/your-db'),
+    WinstonModule.forRoot({
+      transports: [
+        new winston.transports.Console(),
+        new DailyRotateFile({
+          filename: 'logs/application-%DATE%.log',
+          datePattern: 'YYYY-MM-DD-HH',
+          zippedArchive: true,
+          maxSize: '20m',
+          maxFiles: '14d',
+        }),
+      ],
+    }),
+    PrometheusModule, // Module pour Prometheus (si vous en avez créé un)
   ],
-
-  
-  controllers: [], // Controllers globaux, si nécessaire
-  providers: [],   // Services globaux, si nécessaire
+  controllers: [MetricsController], // Contrôleur pour exposer les métriques
+  providers: [],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(PrometheusMiddleware) // Middleware pour enregistrer les métriques
+      .forRoutes({ path: '*', method: RequestMethod.ALL });
+  }
+}
