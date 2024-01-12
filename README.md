@@ -21,8 +21,8 @@ L'API fournit une interface pour gérer des données utilisateur avec des foncti
 Clonez le dépôt et installez les dépendances :
 
 ```bash
-git clone https://votre-depot.git
-cd votre-projet
+git clone github.com/OuchTech/nestjs-project
+cd nestjs-project
 npm install
 ```
 
